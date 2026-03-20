@@ -3,17 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>API Test Generator</title>
+    <title>testForge</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <main class="app-shell">
       <section class="hero">
-        <p class="eyebrow">SDET Tooling MVP</p>
-        <h1>Generate structured API test cases in one pass.</h1>
+        <p class="eyebrow">testForge</p>
+        <h1 class="hero-title">
+          <span id="typewriter-text"></span><span class="typewriter-cursor" aria-hidden="true"></span>
+        </h1>
         <p class="subtitle">
-          Paste a sample request body and get positive, negative, and edge cases
-          with Postman and RestAssured starter snippets.
+          Paste a JSON payload and review raw edge variations, structured test cases,
+          and copy-ready Postman and RestAssured snippets.
         </p>
       </section>
 
@@ -25,20 +27,37 @@
               Load sample
             </button>
           </div>
-          <textarea id="json-input" spellcheck="false"></textarea>
+          <div class="editor-shell">
+            <div id="line-numbers" class="line-numbers" aria-hidden="true"></div>
+            <div class="editor-pane">
+              <pre id="json-highlight" class="json-highlight" aria-hidden="true"></pre>
+              <textarea id="json-input" class="json-editor" spellcheck="false"></textarea>
+            </div>
+          </div>
+          <div class="snippet-toggle-row">
+            <label class="check-option">
+              <input id="postman-toggle" type="checkbox" checked />
+              <span>Postman</span>
+            </label>
+            <label class="check-option">
+              <input id="ra-toggle" type="checkbox" checked />
+              <span>RestAssured</span>
+            </label>
+          </div>
           <button id="generate-button" class="primary-button" type="button">
-            Generate Test Cases
+            Generate Output
           </button>
           <p id="status" class="status"></p>
         </div>
 
         <div class="panel output-panel">
-          <div class="panel-header">
-            <h2>Generated Output</h2>
-            <span id="summary" class="summary-pill"></span>
+          <div class="panel-header panel-header-wrap">
+            <div>
+              <h2>Generated Output</h2>
+            </div>
           </div>
           <div id="results" class="results empty-state">
-            Generated test cases will appear here.
+            Generated results will appear here.
           </div>
         </div>
       </section>

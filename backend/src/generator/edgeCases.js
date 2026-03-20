@@ -23,10 +23,6 @@ function formatPath(path) {
   return path.join(".");
 }
 
-function getAtPath(target, path) {
-  return path.reduce((current, segment) => current?.[segment], target);
-}
-
 function setAtPath(target, path, value) {
   let cursor = target;
 
@@ -41,234 +37,146 @@ function setAtPath(target, path, value) {
   cursor[path[path.length - 1]] = value;
 }
 
-function deleteAtPath(target, path) {
-  let cursor = target;
-
-  for (let index = 0; index < path.length - 1; index += 1) {
-    cursor = cursor?.[path[index]];
-    if (!cursor || typeof cursor !== "object") {
-      return;
-    }
-  }
-
-  delete cursor[path[path.length - 1]];
-}
-
-function createVariant(baseInput, path, nextValue, mode = "replace") {
+function createVariant(baseInput, path, nextValue) {
   const variant = cloneInput(baseInput);
-
-  if (mode === "delete") {
-    deleteAtPath(variant, path);
-    return variant;
-  }
-
   setAtPath(variant, path, nextValue);
   return variant;
 }
 
-function pushCase(cases, baseInput, path, overrides) {
-  cases.push({
-    input: cloneInput(baseInput),
-    ...overrides,
-    fieldPath: formatPath(path)
-  });
-}
-
-function buildPrimitiveCases(baseInput, path, value, type) {
+function buildPrimitiveEdgeCases(baseInput, path, value, type) {
   const field = formatPath(path);
   const cases = [];
 
-  pushCase(cases, baseInput, path, {
-    title: `Valid ${field}`,
-    type: "positive",
-    priority: type === "boolean" ? "low" : "medium",
-    expected: { status: 200, message: `${field} accepted` },
-    reason: `${field} uses a normal valid ${type} value.`
-  });
-
   cases.push({
-    title: `Missing required field: ${field}`,
-    type: "negative",
+    title: `${field} should reject null`,
+    type: "null-value",
     priority: "high",
-    input: createVariant(baseInput, path, undefined, "delete"),
-    expected: { status: 400, message: `${field} is required` },
-    reason: `${field} should be rejected when the field is omitted.`
+    input: createVariant(baseInput, path, null)
   });
 
   if (type === "string") {
     cases.push({
-      title: `Empty ${field}`,
-      type: "negative",
-      priority: "high",
-      input: createVariant(baseInput, path, ""),
-      expected: { status: 400, message: `${field} cannot be empty` },
-      reason: `${field} should reject empty string input.`
+      title: `${field} boundary length`,
+      type: "boundary",
+      priority: "medium",
+      input: createVariant(baseInput, path, longString(value))
     });
     cases.push({
-      title: `Long ${field}`,
-      type: "edge",
+      title: `${field} invalid type`,
+      type: "invalid-type",
       priority: "medium",
-      input: createVariant(baseInput, path, longString(value)),
-      expected: { status: 400, message: `${field} exceeds allowed length` },
-      reason: `${field} should handle oversized string input safely.`
-    });
-    cases.push({
-      title: `Wrong type for ${field}`,
-      type: "negative",
-      priority: "medium",
-      input: createVariant(baseInput, path, 12345),
-      expected: { status: 400, message: `${field} must be a string` },
-      reason: `${field} should reject data with the wrong type.`
+      input: createVariant(baseInput, path, 12345)
     });
   }
 
   if (type === "number") {
     cases.push({
-      title: `Negative ${field}`,
-      type: "edge",
-      priority: "high",
-      input: createVariant(baseInput, path, -1),
-      expected: { status: 400, message: `${field} cannot be negative` },
-      reason: `${field} should reject negative values when only valid positive input is expected.`
-    });
-    cases.push({
-      title: `Zero ${field}`,
-      type: "edge",
-      priority: "medium",
-      input: createVariant(baseInput, path, 0),
-      expected: { status: 400, message: `${field} cannot be zero` },
-      reason: `${field} should validate boundary handling around zero.`
-    });
-    cases.push({
-      title: `Large ${field}`,
-      type: "edge",
-      priority: "medium",
-      input: createVariant(baseInput, path, 999999999),
-      expected: { status: 400, message: `${field} exceeds allowed range` },
-      reason: `${field} should handle extreme numeric input safely.`
-    });
-    cases.push({
-      title: `Wrong type for ${field}`,
+      title: `${field} negative boundary`,
       type: "negative",
+      priority: "high",
+      input: createVariant(baseInput, path, -1)
+    });
+    cases.push({
+      title: `${field} zero boundary`,
+      type: "boundary",
       priority: "medium",
-      input: createVariant(baseInput, path, "not-a-number"),
-      expected: { status: 400, message: `${field} must be a number` },
-      reason: `${field} should reject non-numeric input.`
+      input: createVariant(baseInput, path, 0)
+    });
+    cases.push({
+      title: `${field} large boundary`,
+      type: "boundary",
+      priority: "medium",
+      input: createVariant(baseInput, path, 999999999)
+    });
+    cases.push({
+      title: `${field} invalid type`,
+      type: "invalid-type",
+      priority: "medium",
+      input: createVariant(baseInput, path, "not-a-number")
     });
   }
 
   if (type === "boolean") {
     cases.push({
-      title: `Wrong type for ${field}`,
-      type: "negative",
+      title: `${field} invalid type`,
+      type: "invalid-type",
       priority: "medium",
-      input: createVariant(baseInput, path, "true"),
-      expected: { status: 400, message: `${field} must be a boolean` },
-      reason: `${field} should reject string values that imitate booleans.`
+      input: createVariant(baseInput, path, "true")
     });
   }
 
   return cases;
 }
 
-function buildObjectCases(baseInput, path, value) {
+function buildObjectEdgeCases(baseInput, path) {
   const field = formatPath(path);
-  const cases = [
+
+  return [
     {
-      title: `Null ${field}`,
-      type: "negative",
+      title: `${field} should reject null`,
+      type: "null-value",
       priority: "high",
-      input: createVariant(baseInput, path, null),
-      expected: { status: 400, message: `${field} cannot be null` },
-      reason: `${field} should reject null instead of a valid object.`
+      input: createVariant(baseInput, path, null)
     },
     {
-      title: `Wrong type for ${field}`,
-      type: "negative",
+      title: `${field} invalid type`,
+      type: "invalid-type",
       priority: "medium",
-      input: createVariant(baseInput, path, "invalid-object"),
-      expected: { status: 400, message: `${field} must be an object` },
-      reason: `${field} should reject primitive values when an object is expected.`
+      input: createVariant(baseInput, path, "invalid-object")
     }
   ];
-
-  if (Object.keys(value).length === 0) {
-    cases.push({
-      title: `Empty ${field}`,
-      type: "edge",
-      priority: "low",
-      input: createVariant(baseInput, path, {}),
-      expected: { status: 400, message: `${field} cannot be empty` },
-      reason: `${field} should validate empty object payloads if nested data is required.`
-    });
-  }
-
-  return cases;
 }
 
-function buildArrayCases(baseInput, path, value) {
+function buildArrayEdgeCases(baseInput, path, value) {
   const field = formatPath(path);
   const cases = [
     {
-      title: `Valid ${field}`,
-      type: "positive",
-      priority: "low",
-      input: cloneInput(baseInput),
-      expected: { status: 200, message: `${field} accepted` },
-      reason: `${field} uses a normal valid array payload.`
+      title: `${field} should reject null`,
+      type: "null-value",
+      priority: "high",
+      input: createVariant(baseInput, path, null)
     },
     {
-      title: `Empty ${field}`,
-      type: "edge",
+      title: `${field} empty boundary`,
+      type: "boundary",
       priority: "medium",
-      input: createVariant(baseInput, path, []),
-      expected: { status: 400, message: `${field} cannot be empty` },
-      reason: `${field} should validate empty collection handling.`
+      input: createVariant(baseInput, path, [])
     },
     {
-      title: `Wrong type for ${field}`,
-      type: "negative",
+      title: `${field} invalid type`,
+      type: "invalid-type",
       priority: "medium",
-      input: createVariant(baseInput, path, "not-an-array"),
-      expected: { status: 400, message: `${field} must be an array` },
-      reason: `${field} should reject non-array values.`
+      input: createVariant(baseInput, path, "not-an-array")
     }
   ];
 
   if (value.length > 0) {
-    const firstItem = value[0];
-    const firstItemType = inferType(firstItem);
+    const firstItemType = inferType(value[0]);
 
     if (firstItemType === "string") {
       cases.push({
-        title: `Invalid item in ${field}`,
-        type: "negative",
+        title: `${field} invalid item type`,
+        type: "invalid-type",
         priority: "medium",
-        input: createVariant(baseInput, path, [12345]),
-        expected: { status: 400, message: `${field} contains invalid item type` },
-        reason: `${field} should reject array items with the wrong type.`
+        input: createVariant(baseInput, path, [12345])
       });
     }
 
     if (firstItemType === "number") {
       cases.push({
-        title: `Negative item in ${field}`,
-        type: "edge",
+        title: `${field} negative item boundary`,
+        type: "negative",
         priority: "medium",
-        input: createVariant(baseInput, path, [-1]),
-        expected: { status: 400, message: `${field} contains invalid value` },
-        reason: `${field} should validate numeric array item boundaries.`
+        input: createVariant(baseInput, path, [-1])
       });
     }
 
     if (firstItemType === "object") {
       cases.push({
-        title: `Null item in ${field}`,
-        type: "negative",
+        title: `${field} null item`,
+        type: "null-value",
         priority: "medium",
-        input: createVariant(baseInput, path, [null]),
-        expected: { status: 400, message: `${field} contains invalid object item` },
-        reason: `${field} should reject null entries inside an object array.`
+        input: createVariant(baseInput, path, [null])
       });
     }
   }
@@ -280,18 +188,18 @@ function walkInput(baseInput, currentValue, path = []) {
   const type = inferType(currentValue);
 
   if (type === "object") {
-    const cases = path.length > 0 ? buildObjectCases(baseInput, path, currentValue) : [];
+    const objectCases = path.length > 0 ? buildObjectEdgeCases(baseInput, path) : [];
     const nestedCases = Object.entries(currentValue).flatMap(([key, value]) =>
       walkInput(baseInput, value, [...path, key])
     );
-    return [...cases, ...nestedCases];
+    return [...objectCases, ...nestedCases];
   }
 
   if (type === "array") {
-    return buildArrayCases(baseInput, path, currentValue);
+    return buildArrayEdgeCases(baseInput, path, currentValue);
   }
 
-  return buildPrimitiveCases(baseInput, path, currentValue, type);
+  return buildPrimitiveEdgeCases(baseInput, path, currentValue, type);
 }
 
 function dedupeCases(cases) {
