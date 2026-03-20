@@ -1,3 +1,3 @@
 window.APP_CONFIG = {
-  apiBaseUrl: "http://localhost:4000"
+  apiBaseUrl: "https://testforge-8y4w.onrender.com"
 };
