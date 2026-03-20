@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Test Generator</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero">
+        <p class="eyebrow">SDET Tooling MVP</p>
+        <h1>Generate structured API test cases in one pass.</h1>
+        <p class="subtitle">
+          Paste a sample request body and get positive, negative, and edge cases
+          with Postman and RestAssured starter snippets.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <div class="panel input-panel">
+          <div class="panel-header">
+            <h2>Input JSON</h2>
+            <button id="load-sample" class="ghost-button" type="button">
+              Load sample
+            </button>
+          </div>
+          <textarea id="json-input" spellcheck="false"></textarea>
+          <button id="generate-button" class="primary-button" type="button">
+            Generate Test Cases
+          </button>
+          <p id="status" class="status"></p>
+        </div>
+
+        <div class="panel output-panel">
+          <div class="panel-header">
+            <h2>Generated Output</h2>
+            <span id="summary" class="summary-pill"></span>
+          </div>
+          <div id="results" class="results empty-state">
+            Generated test cases will appear here.
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
