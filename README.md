@@ -1,69 +1,97 @@
-# API Test Generator
+# 🚀 TestForge
 
-A minimal full-stack app that generates structured API test cases plus starter snippets for Postman and RestAssured.
+**TestForge** is an SDET-focused tool that generates structured API test cases and edge scenarios from raw JSON payloads — enabling faster and more consistent test design.
 
-## Structure
+## 🧠 Problem
 
-- `backend/` - Express API intended for deployment on Render
-- `frontend/` - Static frontend intended for deployment on Vercel
+Designing API test cases manually is:
 
-## Local development
+* time-consuming
+* inconsistent across engineers
+* prone to missing critical edge and negative scenarios
 
-### Backend
+SDETs often need to reason about:
 
-```bash
-cd backend
-npm install
-npm run dev
-```
+* boundary conditions
+* invalid inputs
+* missing fields
+* validation rules
 
-The API runs on `http://localhost:4000`.
+## 💡 Solution
 
-### Frontend
+TestForge accelerates **test design thinking** by generating:
 
-Open `frontend/index.html` directly, or serve it with any static file server.
+* Edge cases (boundary, invalid, null, negative)
+* Validation-focused test cases
+* Structured outputs grouped by category
+* Optional automation-ready snippets
 
-The frontend reads its API base URL from `frontend/config.js`.
+All from a simple JSON input — no setup required.
 
-## Deploy
+## ✨ Features
 
-### Render
+* 📥 Paste raw JSON payload into editor
+* ⚙️ Generate:
 
-Use [render.yaml](/c:/APITestGenerator/render.yaml) or configure manually:
+  * Edge cases
+  * Validation test cases
+* 🎯 Priority-based filtering
+* 📂 Categorized output (boundary, invalid, missing fields, etc.)
+* 🔍 Expandable sections (accordion view)
+* 📋 One-click copy for payloads and snippets
+* 🔌 Optional:
 
-- Root directory: `backend`
-- Build command: `npm install`
-- Start command: `npm start`
+  * Postman starter snippets
+  * RestAssured starter snippets
+* 🌐 Runs in browser (no installation required)
+* 🚀 Deployable via Render (backend) + Vercel (frontend)
 
-Your backend URL will look like:
+## ⚠️ Assumptions
 
-`https://your-service-name.onrender.com`
+In the absence of API specifications, TestForge currently assumes:
 
-### Vercel
+* fields are required unless inferred otherwise
+* strict type validation
+* no null values
 
-- Root directory: `frontend`
-- Framework preset: `Other`
+> These assumptions are surfaced and can be refined in future iterations.
 
-Before deploying the frontend, update [config.js](/c:/APITestGenerator/frontend/config.js) to point to your deployed Render backend, for example:
+## 🛠 Tech Stack
 
-```js
-window.APP_CONFIG = {
-  apiBaseUrl: "https://your-service-name.onrender.com"
-};
-```
+* **Frontend:** (your tech, e.g. React / Vanilla JS)
+* **Backend:** Node.js + Express
+* **Deployment:**
 
-## GitHub push
+  * Vercel (frontend)
+  * Render (backend)
 
-```bash
-git init
-git add .
-git commit -m "Initial MVP"
-```
+## 🚀 How to Use
 
-Then create an empty GitHub repository and run:
+1. Paste a JSON payload
+2. Select generation options
+3. Run generation
+4. Browse categorized test cases
+5. Copy payloads/snippets as needed
 
-```bash
-git remote add origin <your-repo-url>
-git branch -M main
-git push -u origin main
-```
+## 🎯 Current Focus (MVP)
+
+* Rapid test design
+* Exploratory API testing
+* Edge and negative case generation
+
+## 🔮 Future Improvements
+
+* Swagger / OpenAPI support
+* Smarter prioritization and deduplication
+* Test case limit controls
+* Field-level validation configuration
+* Export options (JSON / CSV / test frameworks)
+
+## 📌 Live Demo
+
+Frontend: https://testforge-seven.vercel.app/
+Backend: (your Render URL)
+
+## 🤝 Contributions
+
+Open to feedback and improvements. Feel free to raise issues or suggestions.
